@@ -8,6 +8,10 @@
     <meta http-equiv="Expires" content="0" />
   </head>
   <body>
-    <script src="./redirect.js?t=<?=Date.now()?>"></script>
+    <script>
+  const s = document.createElement('script');
+  s.src = `./redirect.js?t=${Date.now()}`;
+  document.body.appendChild(s);
+</script>
   </body>
 </html>
