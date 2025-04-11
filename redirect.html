@@ -2,48 +2,60 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Daily Redirect</title>
+  <title>Redirecting to Today's Daily Report...</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding-top: 100px;
+    }
+  </style>
 </head>
 <body>
-  <p>🔄 正在為您尋找今天的 Daily Standup 頁面...</p>
+  <h2>🔄 正在尋找今天的 Daily Report 頁面...</h2>
+  <p id="status">請稍候...</p>
 
   <script>
-(async () => {
-  // 母頁的 Confluence pageId（你可以硬寫死，也可以從 meta 裡動態取）
-  const parentPageId = '609911659'; // 替換為你 Daily Standup 主頁的 pageId
+    (async () => {
+      const parentPageId = '609911659';  // Confluence Daily Standup 主頁的 pageId
 
-  try {
-    const response = await fetch(`/wiki/rest/api/content/${parentPageId}/child/page?limit=100`, {
-      headers: {
-        'Accept': 'application/json'
-      },
-      credentials: 'include'  // 重要：需要帶上 cookie 執行
-    });
+      // 取得今天的日期字串，格式為 "4+10+25"
+      const today = new Date();
+      const month = today.getMonth() + 1;
+      const day = today.getDate();
+      const year = today.getFullYear() % 100;
+      const todayStr = `${month}+${day}+${year}`;
 
-    const data = await response.json();
-    const children = data.results;
+      document.getElementById("status").innerText = `查找標題包含「${todayStr}」的頁面中...`;
 
-    // 取得今天日期，格式: "4/10"
-    const today = new Date();
-    const todayStr = `${today.getMonth() + 1}/${today.getDate()}`;
+      try {
+        const res = await fetch(`https://kkday.atlassian.net/wiki/rest/api/content/${parentPageId}/child/page?limit=100`, {
+          headers: {
+            'Accept': 'application/json'
+          },
+          credentials: 'include' // 帶上 cookie，確保登入狀態
+        });
 
-    // 找包含今天日期的頁面
-    const todayPage = children.find(p => p.title.includes(todayStr));
+        const data = await res.json();
+        const pages = data.results;
 
-    if (todayPage) {
-      // 成功：跳轉至 Confluence 頁面
-      const url = `/wiki${todayPage._links.webui}`;
-      console.log("Redirecting to:", url);
-      window.location.href = url;
-    } else {
-      document.body.innerHTML = `<h2>❌ 找不到今天 (${todayStr}) 的 Daily 頁面</h2>`;
-    }
-  } catch (err) {
-    console.error("發生錯誤：", err);
-    document.body.innerHTML = `<h2>🚨 請登入 Confluence 後重整頁面</h2>`;
-  }
-})();
-</script>
+        const todayPage = pages.find(p => p.title.includes(todayStr));
+
+        if (todayPage) {
+          const url = `https://kkday.atlassian.net/wiki${todayPage._links.webui}`;
+          document.getElementById("status").innerText = `✅ 找到頁面，正在跳轉...`;
+          window.location.href = url;
+        } else {
+          document.getElementById("status").innerHTML = `❌ 沒有找到今天 (${todayStr}) 的 Daily 頁面。`;
+        }
+      } catch (err) {
+        console.error("錯誤：", err);
+        document.getElementById("status").innerHTML = `
+          ⚠️ 請先<a href="https://kkday.atlassian.net/wiki/">登入 Confluence</a>後再重新整理本頁。
+        `;
+      }
+    })();
+  </script>
 </body>
 </html>
