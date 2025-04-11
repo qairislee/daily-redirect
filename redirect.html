@@ -1,17 +1,49 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>Daily Redirect</title>
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
-  </head>
-  <body>
-    <script>
-  const s = document.createElement('script');
-  s.src = `./redirect.js?t=${Date.now()}`;
-  document.body.appendChild(s);
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Daily Redirect</title>
+</head>
+<body>
+  <p>🔄 正在為您尋找今天的 Daily Standup 頁面...</p>
+
+  <script>
+(async () => {
+  // 母頁的 Confluence pageId（你可以硬寫死，也可以從 meta 裡動態取）
+  const parentPageId = '609911659'; // 替換為你 Daily Standup 主頁的 pageId
+
+  try {
+    const response = await fetch(`/wiki/rest/api/content/${parentPageId}/child/page?limit=100`, {
+      headers: {
+        'Accept': 'application/json'
+      },
+      credentials: 'include'  // 重要：需要帶上 cookie 執行
+    });
+
+    const data = await response.json();
+    const children = data.results;
+
+    // 取得今天日期，格式: "4/10"
+    const today = new Date();
+    const todayStr = `${today.getMonth() + 1}/${today.getDate()}`;
+
+    // 找包含今天日期的頁面
+    const todayPage = children.find(p => p.title.includes(todayStr));
+
+    if (todayPage) {
+      // 成功：跳轉至 Confluence 頁面
+      const url = `/wiki${todayPage._links.webui}`;
+      console.log("Redirecting to:", url);
+      window.location.href = url;
+    } else {
+      document.body.innerHTML = `<h2>❌ 找不到今天 (${todayStr}) 的 Daily 頁面</h2>`;
+    }
+  } catch (err) {
+    console.error("發生錯誤：", err);
+    document.body.innerHTML = `<h2>🚨 請登入 Confluence 後重整頁面</h2>`;
+  }
+})();
 </script>
-  </body>
+</body>
 </html>
