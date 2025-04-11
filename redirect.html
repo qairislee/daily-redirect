@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>跳轉到今日 Daily Report</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
       font-family: system-ui, sans-serif;
@@ -27,10 +27,10 @@
 
   <script>
     (async () => {
-      const parentPageId = '609911659'; // Daily 主頁 pageId
+      const today = new Date();
+      const month = today.getMonth() + 1;
+      const day = today.getDate();
+      const year = today.getFullYear() % 100;
+      const todayStr = `${month}+${day}+${year}`; // 例如 "4+10+25"
 
-      const now = new Date();
-      const month = now.getMonth() + 1;
-      const day = now.getDate();
-      const year = now.getFullYear() % 100;
-      const todayTitle = `${month}+${day}+${year}`; //
+      const
